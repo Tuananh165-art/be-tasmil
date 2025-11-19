@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Web3 Login Full Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
+  <style>
+    button { margin: 5px; padding: 10px 20px; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 5px; max-width: 700px; }
+  </style>
+</head>
+<body>
+  <h1>Web3 Login Test Fixed Full Flow</h1>
+  <button id="connectWallet">Connect Wallet</button>
+  <button id="loginWallet">Login Wallet</button>
+  <button id="copyPayload">Copy Payload</button>
+
+  <p id="status"></p>
+  <pre id="result"></pre>
+
+  <script>
+    let walletAddress = null;
+    let nonce = null;
+    let lastPayload = null;
+
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const copyBtn = document.getElementById('copyPayload');
+
+    document.getElementById('connectWallet').onclick = async () => {
+      if (!window.ethereum) {
+        statusEl.textContent = "MetaMask not installed!";
+        return;
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        walletAddress = accounts[0];
+        statusEl.textContent = `Connected: ${walletAddress}`;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Connection failed";
+      }
+    };
+
+    document.getElementById('loginWallet').onclick = async () => {
+      if (!walletAddress) {
+        statusEl.textContent = "Connect wallet first!";
+        return;
+      }
+
+      try {
+        const nonceRes = await fetch(`http://localhost:3000/api/auth/wallet/nonce?wallet_address=${walletAddress}&with_signature=false`);
+        const json = await nonceRes.json();
+        if (!json.success || !json.data?.nonce) {
+          statusEl.textContent = "Nonce not received from backend";
+          console.error('Nonce response:', json);
+          return;
+        }
+        nonce = json.data.nonce;
+        statusEl.textContent = `Nonce received: ${nonce}`;
+
+        const message = `Tasmil Login Nonce: ${nonce}`;
+
+        const signature = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, walletAddress],
+        });
+
+        lastPayload = {
+          wallet_address: walletAddress,
+          signature
+        };
+
+        resultEl.textContent = JSON.stringify(lastPayload, null, 2);
+        statusEl.textContent = "Wallet signed. Copy payload to Swagger/Postman or press 'Copy Payload'.";
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Login failed";
+      }
+    };
+
+    copyBtn.onclick = () => {
+      if (!lastPayload) {
+        statusEl.textContent = "No payload to copy!";
+        return;
+      }
+      navigator.clipboard.writeText(JSON.stringify(lastPayload, null, 2))
+        .then(() => {
+          statusEl.textContent = "Payload copied to clipboard!";
+        })
+        .catch(err => {
+          console.error(err);
+          statusEl.textContent = "Copy failed";
+        });
+    };
+  </script>
+</body>
+</html>
