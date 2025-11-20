@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { CampaignsService } from './campaigns.service';
 import { Campaign } from './entities/campaign.entity';
 import { CampaignParticipation } from './entities/campaign-participation.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { UserTask } from '../user-tasks/entities/user-task.entity';
 import { CampaignClaim } from '../claims/entities/campaign-claim.entity';
 import { ClaimsService } from '../claims/claims.service';
@@ -15,7 +15,7 @@ describe('CampaignsService', () => {
     title: 'Demo',
     description: null,
     category: null,
-    rewardPoints: 500,
+    rewardPointCampaign: 500,
     minTasksToComplete: 1,
     questersCount: 0,
     startAt: null,
@@ -71,9 +71,8 @@ describe('CampaignsService', () => {
 
   it('prevents joining campaign twice', async () => {
     await campaignsService.joinCampaign('camp-1', 'user-1');
-    await expect(
-      campaignsService.joinCampaign('camp-1', 'user-1'),
-    ).rejects.toThrow(BusinessException);
+    await expect(campaignsService.joinCampaign('camp-1', 'user-1')).rejects.toThrow(
+      BusinessException,
+    );
   });
 });
-

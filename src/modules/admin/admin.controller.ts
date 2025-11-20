@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
@@ -29,10 +22,7 @@ export class AdminController {
   }
 
   @Patch('campaigns/:id')
-  updateCampaign(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateCampaignDto,
-  ) {
+  updateCampaign(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCampaignDto) {
     return this.adminService.updateCampaign(id, dto);
   }
 
@@ -42,18 +32,12 @@ export class AdminController {
   }
 
   @Post('campaigns/:campaignId/tasks')
-  addTask(
-    @Param('campaignId', ParseUUIDPipe) campaignId: string,
-    @Body() dto: CreateTaskDto,
-  ) {
+  addTask(@Param('campaignId', ParseUUIDPipe) campaignId: string, @Body() dto: CreateTaskDto) {
     return this.adminService.addTask(campaignId, dto);
   }
 
   @Patch('tasks/:taskId')
-  updateTask(
-    @Param('taskId', ParseUUIDPipe) taskId: string,
-    @Body() dto: UpdateTaskDto,
-  ) {
+  updateTask(@Param('taskId', ParseUUIDPipe) taskId: string, @Body() dto: UpdateTaskDto) {
     return this.adminService.updateTask(taskId, dto);
   }
 
@@ -72,4 +56,3 @@ export class AdminController {
     return this.adminService.rejectUserTask(id);
   }
 }
-

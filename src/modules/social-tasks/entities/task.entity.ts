@@ -1,0 +1,69 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+import { Campaign } from '../../campaigns/entities/campaign.entity';
+import { TaskType } from '../../../common/enums/task-type.enum';
+import { UserTask } from '../../user-tasks/entities/user-task.entity';
+import { TaskClaim } from '../../claims/entities/task-claim.entity';
+import { TIMESTAMP_COLUMN_TYPE, enumColumn } from '../../../common/utils/column-type.util';
+
+@Entity({ name: 'tasks' })
+@Unique('idx_tasks_campaign_order', ['campaignId', 'taskOrder'])
+export class Task {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ type: 'uuid', name: 'campaign_id' })
+  campaignId!: string;
+
+  @ManyToOne(() => Campaign, (campaign) => campaign.tasks, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'campaign_id' })
+  campaign!: Campaign;
+
+  @Column({ type: 'varchar', length: 255 })
+  name!: string;
+
+  @Column({ type: 'text', nullable: true })
+  description?: string | null;
+
+  @Column({ type: 'text', name: 'url_action', nullable: true })
+  urlAction?: string | null;
+
+  @Column({ type: 'integer', name: 'reward_points' })
+  rewardPointTask!: number;
+
+  @Column(
+    enumColumn(TaskType, {
+      enumName: 'task_type_enum',
+      name: 'task_type',
+      nullable: true,
+    }),
+  )
+  type?: TaskType | null;
+
+  @Column({ type: 'jsonb', nullable: true, default: () => "'{}'" })
+  config?: Record<string, any> | null;
+
+  @Column({ type: 'integer', name: 'task_order', default: 0 })
+  @Index()
+  taskOrder = 0;
+
+  @CreateDateColumn({ name: 'created_at', type: TIMESTAMP_COLUMN_TYPE })
+  createdAt!: Date;
+
+  @OneToMany(() => UserTask, (userTask) => userTask.task)
+  userTasks?: UserTask[];
+
+  @OneToMany(() => TaskClaim, (claim) => claim.task)
+  taskClaims?: TaskClaim[];
+}

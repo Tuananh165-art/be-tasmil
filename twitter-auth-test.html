@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Twitter OAuth Test</title>
+  </head>
+  <body>
+    <h1>Twitter OAuth Test Helper</h1>
+    <p>
+      After completing OAuth on Twitter, paste the access token / refresh token
+      from the callback response and send them to
+      <code>/api/social-auth/twitter/token</code>.
+    </p>
+    <label>
+      Backend Base URL
+      <input id="baseUrl" value="http://localhost:3000/api" size="40" />
+    </label>
+    <br />
+    <label>
+      Access Token
+      <input id="accessToken" size="60" />
+    </label>
+    <br />
+    <label>
+      Refresh Token
+      <input id="refreshToken" size="60" />
+    </label>
+    <br />
+    <label>
+      Twitter User ID
+      <input id="externalUserId" />
+    </label>
+    <br />
+    <label>
+      Username (optional)
+      <input id="username" />
+    </label>
+    <br />
+    <label>
+      Expires In (seconds)
+      <input id="expiresIn" type="number" />
+    </label>
+    <br />
+    <button id="sendBtn">Send Tokens</button>
+    <pre id="response"></pre>
+
+    <script>
+      document.getElementById('sendBtn').addEventListener('click', async () => {
+        const payload = {
+          accessToken: document.getElementById('accessToken').value,
+          refreshToken: document.getElementById('refreshToken').value,
+          externalUserId: document.getElementById('externalUserId').value,
+          expiresIn: parseInt(
+            document.getElementById('expiresIn').value || '0',
+            10,
+          ),
+          metadata: {
+            username: document.getElementById('username').value || undefined,
+          },
+        };
+        const res = await fetch(
+          `${document.getElementById('baseUrl').value}/social-auth/twitter/token`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('jwt') || ''}`,
+            },
+            body: JSON.stringify(payload),
+          },
+        );
+        document.getElementById('response').textContent = await res.text();
+      });
+    </script>
+  </body>
+</html>
+
+

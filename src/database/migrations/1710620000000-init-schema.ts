@@ -35,9 +35,7 @@ export default class InitSchema1710620000000 implements MigrationInterface {
     await queryRunner.query(
       `CREATE INDEX "idx_users_wallet_address" ON "users" ("wallet_address")`,
     );
-    await queryRunner.query(
-      `CREATE INDEX "idx_users_total_points" ON "users" ("total_points")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_users_total_points" ON "users" ("total_points")`);
 
     await queryRunner.query(`
       CREATE TABLE "campaigns" (
@@ -53,9 +51,7 @@ export default class InitSchema1710620000000 implements MigrationInterface {
         "created_at" timestamptz NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query(
-      `CREATE INDEX "idx_campaigns_category" ON "campaigns" ("category")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_campaigns_category" ON "campaigns" ("category")`);
 
     await queryRunner.query(`
       CREATE TABLE "tasks" (
@@ -105,15 +101,11 @@ export default class InitSchema1710620000000 implements MigrationInterface {
         CONSTRAINT "fk_user_tasks_task" FOREIGN KEY ("task_id") REFERENCES "tasks" ("id") ON DELETE CASCADE
       )
     `);
-    await queryRunner.query(
-      `CREATE INDEX "idx_user_tasks_user_id" ON "user_tasks" ("user_id")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_user_tasks_user_id" ON "user_tasks" ("user_id")`);
     await queryRunner.query(
       `CREATE INDEX "idx_user_tasks_campaign_id" ON "user_tasks" ("campaign_id")`,
     );
-    await queryRunner.query(
-      `CREATE INDEX "idx_user_tasks_task_id" ON "user_tasks" ("task_id")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_user_tasks_task_id" ON "user_tasks" ("task_id")`);
     await queryRunner.query(
       `CREATE UNIQUE INDEX "uq_user_task_user_task" ON "user_tasks" ("user_id","task_id")`,
     );
@@ -131,15 +123,11 @@ export default class InitSchema1710620000000 implements MigrationInterface {
         CONSTRAINT "fk_task_claim_task" FOREIGN KEY ("task_id") REFERENCES "tasks" ("id") ON DELETE SET NULL
       )
     `);
-    await queryRunner.query(
-      `CREATE INDEX "idx_task_claims_user_id" ON "task_claims" ("user_id")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_task_claims_user_id" ON "task_claims" ("user_id")`);
     await queryRunner.query(
       `CREATE INDEX "idx_task_claims_campaign_id" ON "task_claims" ("campaign_id")`,
     );
-    await queryRunner.query(
-      `CREATE INDEX "idx_task_claims_task_id" ON "task_claims" ("task_id")`,
-    );
+    await queryRunner.query(`CREATE INDEX "idx_task_claims_task_id" ON "task_claims" ("task_id")`);
     await queryRunner.query(
       `CREATE UNIQUE INDEX "uq_task_claim_user_task" ON "task_claims" ("user_id","task_id")`,
     );
@@ -202,10 +190,7 @@ export default class InitSchema1710620000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "campaigns"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "public"."task_type_enum"`);
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "public"."campaign_category_enum"`,
-    );
+    await queryRunner.query(`DROP TYPE IF EXISTS "public"."campaign_category_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "public"."user_tier_enum"`);
   }
 }
-

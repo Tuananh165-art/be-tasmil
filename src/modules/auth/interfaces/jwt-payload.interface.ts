@@ -7,4 +7,3 @@ export interface JwtPayload {
   role: UserRole;
   tokenId?: string;
 }
-

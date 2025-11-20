@@ -4,20 +4,14 @@ import { CampaignsController } from './campaigns.controller';
 import { CampaignsService } from './campaigns.service';
 import { Campaign } from './entities/campaign.entity';
 import { CampaignParticipation } from './entities/campaign-participation.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { ClaimsModule } from '../claims/claims.module';
 import { CampaignClaim } from '../claims/entities/campaign-claim.entity';
 import { UserTask } from '../user-tasks/entities/user-task.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Campaign,
-      CampaignParticipation,
-      Task,
-      CampaignClaim,
-      UserTask,
-    ]),
+    TypeOrmModule.forFeature([Campaign, CampaignParticipation, Task, CampaignClaim, UserTask]),
     ClaimsModule,
   ],
   controllers: [CampaignsController],
@@ -25,4 +19,3 @@ import { UserTask } from '../user-tasks/entities/user-task.entity';
   exports: [CampaignsService],
 })
 export class CampaignsModule {}
-

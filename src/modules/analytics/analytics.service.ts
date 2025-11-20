@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Campaign } from '../campaigns/entities/campaign.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { TaskClaim } from '../claims/entities/task-claim.entity';
 import { CampaignClaim } from '../claims/entities/campaign-claim.entity';
 
@@ -37,14 +37,13 @@ export class AnalyticsService {
   }
 
   async getSystemAnalytics() {
-    const [users, campaigns, tasks, taskClaims, campaignClaims] =
-      await Promise.all([
-        this.usersRepository.count(),
-        this.campaignsRepository.count(),
-        this.tasksRepository.count(),
-        this.taskClaimsRepository.count(),
-        this.campaignClaimsRepository.count(),
-      ]);
+    const [users, campaigns, tasks, taskClaims, campaignClaims] = await Promise.all([
+      this.usersRepository.count(),
+      this.campaignsRepository.count(),
+      this.tasksRepository.count(),
+      this.taskClaimsRepository.count(),
+      this.campaignClaimsRepository.count(),
+    ]);
     return {
       totalUsers: users,
       totalCampaigns: campaigns,
@@ -54,4 +53,3 @@ export class AnalyticsService {
     };
   }
 }
-

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Discord OAuth Test</title>
+  </head>
+  <body>
+    <h1>Discord OAuth Manual Test</h1>
+    <p>
+      Use the Discord OAuth authorize URL with your <code>client_id</code> and
+      paste the returned access token details below to store them via
+      <code>/api/social-auth/discord/token</code>.
+    </p>
+    <label>
+      Backend Base URL
+      <input id="baseUrl" value="http://localhost:3000/api" size="40" />
+    </label>
+    <br />
+    <label>
+      Access Token
+      <input id="accessToken" size="60" />
+    </label>
+    <br />
+    <label>
+      Refresh Token
+      <input id="refreshToken" size="60" />
+    </label>
+    <br />
+    <label>
+      Discord User ID
+      <input id="externalUserId" />
+    </label>
+    <br />
+    <label>
+      Expires In (seconds)
+      <input id="expiresIn" type="number" />
+    </label>
+    <br />
+    <button id="sendBtn">Send Tokens</button>
+    <pre id="response"></pre>
+
+    <script>
+      document.getElementById('sendBtn').addEventListener('click', async () => {
+        const payload = {
+          accessToken: document.getElementById('accessToken').value,
+          refreshToken: document.getElementById('refreshToken').value,
+          externalUserId: document.getElementById('externalUserId').value,
+          expiresIn: parseInt(
+            document.getElementById('expiresIn').value || '0',
+            10,
+          ),
+        };
+        const res = await fetch(
+          `${document.getElementById('baseUrl').value}/social-auth/discord/token`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('jwt') || ''}`,
+            },
+            body: JSON.stringify(payload),
+          },
+        );
+        document.getElementById('response').textContent = await res.text();
+      });
+    </script>
+  </body>
+</html>
+
+

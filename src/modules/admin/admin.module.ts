@@ -10,4 +10,3 @@ import { UserTasksModule } from '../user-tasks/user-tasks.module';
   providers: [AdminService],
 })
 export class AdminModule {}
-

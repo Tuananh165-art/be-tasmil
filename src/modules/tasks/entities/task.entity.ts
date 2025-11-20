@@ -13,10 +13,7 @@ import { Campaign } from '../../campaigns/entities/campaign.entity';
 import { TaskType } from '../../../common/enums/task-type.enum';
 import { UserTask } from '../../user-tasks/entities/user-task.entity';
 import { TaskClaim } from '../../claims/entities/task-claim.entity';
-import {
-  TIMESTAMP_COLUMN_TYPE,
-  enumColumn,
-} from '../../../common/utils/column-type.util';
+import { TIMESTAMP_COLUMN_TYPE, enumColumn } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'tasks' })
 @Unique('idx_tasks_campaign_order', ['campaignId', 'taskOrder'])
@@ -43,16 +40,19 @@ export class Task {
   urlAction?: string | null;
 
   @Column({ type: 'integer', name: 'reward_points' })
-  rewardPoints!: number;
+  rewardPointTask!: number;
 
   @Column(
     enumColumn(TaskType, {
       enumName: 'task_type_enum',
       name: 'task_type',
-      nullable: true,
+      nullable: false,
     }),
   )
-  taskType?: TaskType | null;
+  type!: TaskType;
+
+  @Column({ type: 'jsonb', nullable: true, default: () => "'{}'" })
+  config?: Record<string, any> | null;
 
   @Column({ type: 'integer', name: 'task_order', default: 0 })
   @Index()
@@ -67,4 +67,3 @@ export class Task {
   @OneToMany(() => TaskClaim, (claim) => claim.task)
   taskClaims?: TaskClaim[];
 }
-

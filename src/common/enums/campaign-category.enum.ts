@@ -5,4 +5,3 @@ export enum CampaignCategory {
   Gaming = 'Gaming',
   Other = 'Other',
 }
-

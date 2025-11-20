@@ -10,4 +10,3 @@ import { Notification } from './entities/notification.entity';
   providers: [NotificationsService],
 })
 export class NotificationsModule {}
-

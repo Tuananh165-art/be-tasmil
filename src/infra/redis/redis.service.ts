@@ -43,4 +43,3 @@ export class RedisService {
     return this.nestRedis.getOrNil();
   }
 }
-

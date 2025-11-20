@@ -7,13 +7,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CampaignCategory } from '../../../common/enums/campaign-category.enum';
-import { Task } from '../../tasks/entities/task.entity';
+import { Task } from '../../social-tasks/entities/task.entity';
 import { CampaignParticipation } from './campaign-participation.entity';
 import { CampaignClaim } from '../../claims/entities/campaign-claim.entity';
-import {
-  TIMESTAMP_COLUMN_TYPE,
-  enumColumn,
-} from '../../../common/utils/column-type.util';
+import { TIMESTAMP_COLUMN_TYPE, enumColumn } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'campaigns' })
 @Index('idx_campaigns_category', ['category'])
@@ -35,8 +32,8 @@ export class Campaign {
   )
   category?: CampaignCategory | null;
 
-  @Column({ type: 'integer', name: 'reward_points' })
-  rewardPoints!: number;
+  @Column({ type: 'integer', name: 'reward_point_campaign' })
+  rewardPointCampaign!: number;
 
   @Column({ type: 'integer', name: 'min_tasks_to_complete' })
   minTasksToComplete!: number;
@@ -56,13 +53,9 @@ export class Campaign {
   @OneToMany(() => Task, (task) => task.campaign, { cascade: true })
   tasks?: Task[];
 
-  @OneToMany(
-    () => CampaignParticipation,
-    (participation) => participation.campaign,
-  )
+  @OneToMany(() => CampaignParticipation, (participation) => participation.campaign)
   participations?: CampaignParticipation[];
 
   @OneToMany(() => CampaignClaim, (claim) => claim.campaign)
   claims?: CampaignClaim[];
 }
-

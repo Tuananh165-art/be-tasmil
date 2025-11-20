@@ -1,15 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  DataSource,
-  Repository,
-  QueryFailedError,
-  EntityManager,
-} from 'typeorm';
+import { DataSource, Repository, QueryFailedError, EntityManager, In } from 'typeorm';
 import { TaskClaim } from './entities/task-claim.entity';
 import { CampaignClaim } from './entities/campaign-claim.entity';
 import { UserTask } from '../user-tasks/entities/user-task.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { Campaign } from '../campaigns/entities/campaign.entity';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { UserTaskStatus } from '../../common/enums/user-task-status.enum';
@@ -39,7 +34,7 @@ export class ClaimsService {
         lock: { mode: 'pessimistic_write' as const },
         relations: ['task'],
       });
-      if (!userTask || userTask.status !== UserTaskStatus.Approved) {
+      if (!userTask || !this.isTaskCompleted(userTask.status)) {
         throw new BusinessException({
           code: 'TASK_NOT_APPROVED',
           message: 'Task not approved',
@@ -58,7 +53,7 @@ export class ClaimsService {
           status: 404,
         });
       }
-      const points = userTask.pointsEarned || task.rewardPoints;
+      const points = userTask.pointsEarned || task.rewardPointTask;
       const claimRepo = manager.getRepository(TaskClaim);
       const claim = claimRepo.create({
         userId,
@@ -99,25 +94,54 @@ export class ClaimsService {
           status: 404,
         });
       }
-      const approvedCount = await manager.getRepository(UserTask).count({
+      const tasks = await manager.getRepository(Task).find({
+        where: { campaignId },
+      });
+      if (tasks.length === 0) {
+        throw new BusinessException({
+          code: 'CAMPAIGN_HAS_NO_TASKS',
+          message: 'Campaign has no tasks to verify',
+          status: 400,
+        });
+      }
+      const completedTasks = await manager.getRepository(UserTask).find({
         where: {
           userId,
           campaignId,
-          status: UserTaskStatus.Approved,
+          status: In([UserTaskStatus.Approved, UserTaskStatus.Completed]),
         },
       });
-      if (approvedCount < campaign.minTasksToComplete) {
+      const completedMap = new Map(completedTasks.map((ut) => [ut.taskId, ut]));
+      const incomplete = tasks.find((task) => !completedMap.has(task.id));
+      if (incomplete) {
         throw new BusinessException({
-          code: 'NOT_ELIGIBLE_FOR_CAMPAIGN_CLAIM',
-          message: 'Not eligible for campaign claim',
+          code: 'CAMPAIGN_TASKS_INCOMPLETE',
+          message: 'Complete all tasks before claiming campaign reward',
           status: 400,
         });
       }
       const claimRepo = manager.getRepository(CampaignClaim);
+      const existingClaim = await claimRepo.findOne({
+        where: { userId, campaignId },
+      });
+      if (existingClaim) {
+        throw new BusinessException({
+          code: 'ALREADY_CLAIMED',
+          message: 'Campaign already claimed',
+          status: 400,
+        });
+      }
+      const taskRewardTotal = tasks.reduce((sum, task) => {
+        const userTask = completedMap.get(task.id);
+        const reward = userTask?.pointsEarned ?? task.rewardPointTask ?? 0;
+        return sum + reward;
+      }, 0);
+      const campaignReward = campaign.rewardPointCampaign;
+      const totalReward = campaignReward + taskRewardTotal;
       const claim = claimRepo.create({
         userId,
         campaignId,
-        pointsEarned: campaign.rewardPoints,
+        pointsEarned: totalReward,
       });
       try {
         await claimRepo.save(claim);
@@ -131,13 +155,18 @@ export class ClaimsService {
         }
         throw error;
       }
-      await this.usersService.applyPointChange(
-        userId,
-        campaign.rewardPoints,
-        manager,
-      );
-      return claim;
+      await this.usersService.applyPointChange(userId, totalReward, manager);
+      return {
+        campaign_reward: campaignReward,
+        task_reward_total: taskRewardTotal,
+        total: totalReward,
+        claimed_at: claim.claimedAt,
+      };
     });
+  }
+
+  private isTaskCompleted(status: UserTaskStatus) {
+    return status === UserTaskStatus.Approved || status === UserTaskStatus.Completed;
   }
 
   private isUniqueViolation(error: unknown) {
@@ -148,4 +177,3 @@ export class ClaimsService {
     return driverError?.code === '23505';
   }
 }
-

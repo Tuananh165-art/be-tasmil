@@ -44,4 +44,3 @@ export class CampaignClaim {
   @JoinColumn({ name: 'campaign_id' })
   campaign!: Campaign;
 }
-

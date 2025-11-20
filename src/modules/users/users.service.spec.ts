@@ -2,9 +2,7 @@ import { UsersService } from './users.service';
 
 const createRepositoryMock = (user: any) => {
   const findOne = jest.fn().mockResolvedValue(user);
-  const save = jest
-    .fn()
-    .mockImplementation(async (payload: any) => payload);
+  const save = jest.fn().mockImplementation(async (payload: any) => payload);
   return {
     findOne,
     save,
@@ -62,4 +60,3 @@ describe('UsersService handleLoginSuccess', () => {
     expect(savedUser.loginStreak).toBe(1);
   });
 });
-

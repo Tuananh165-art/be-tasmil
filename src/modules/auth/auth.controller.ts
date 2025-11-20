@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Ip,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Ip, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -49,4 +42,3 @@ export class AuthController {
     return this.authService.logout(dto);
   }
 }
-

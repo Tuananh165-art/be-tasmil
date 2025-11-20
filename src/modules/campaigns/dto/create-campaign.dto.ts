@@ -1,13 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { CampaignCategory } from '../../../common/enums/campaign-category.enum';
 
 export class CreateCampaignDto {
@@ -26,10 +18,10 @@ export class CreateCampaignDto {
   @IsEnum(CampaignCategory)
   category?: CampaignCategory;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Reward points granted when user claims campaign' })
   @IsInt()
   @Min(1)
-  rewardPoints!: number;
+  rewardPointCampaign!: number;
 
   @ApiProperty()
   @IsInt()
@@ -46,4 +38,3 @@ export class CreateCampaignDto {
   @IsDateString()
   endAt?: string;
 }
-

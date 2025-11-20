@@ -2,8 +2,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsInt,
+  IsNotEmptyObject,
   IsOptional,
   IsString,
+  IsObject,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -25,19 +27,30 @@ export class CreateTaskDto {
   @IsString()
   urlAction?: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: TaskType })
+  @IsEnum(TaskType)
+  type!: TaskType;
+
+  @ApiProperty({
+    description: 'Reward points granted when completing the task',
+    minimum: 1,
+  })
   @IsInt()
   @Min(1)
-  rewardPoints!: number;
+  rewardPointTask!: number;
 
-  @ApiPropertyOptional({ enum: TaskType })
+  @ApiPropertyOptional({
+    description: 'Provider specific configuration (groupId, username, tweetId, etc)',
+    type: 'object',
+    additionalProperties: true,
+  })
   @IsOptional()
-  @IsEnum(TaskType)
-  taskType?: TaskType;
+  @IsObject()
+  @IsNotEmptyObject()
+  config?: Record<string, any>;
 
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()
   @IsInt()
   taskOrder?: number;
 }
-

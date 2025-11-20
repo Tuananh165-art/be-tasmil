@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Campaign } from '../../campaigns/entities/campaign.entity';
-import { Task } from '../../tasks/entities/task.entity';
+import { Task } from '../../social-tasks/entities/task.entity';
 import { TIMESTAMP_COLUMN_TYPE } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'task_claims' })
@@ -53,4 +53,3 @@ export class TaskClaim {
   @JoinColumn({ name: 'task_id' })
   task!: Task;
 }
-

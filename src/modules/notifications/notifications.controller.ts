@@ -24,4 +24,3 @@ export class NotificationsController {
     return this.notificationsService.listForUser(user.sub);
   }
 }
-

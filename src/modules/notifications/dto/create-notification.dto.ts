@@ -16,4 +16,3 @@ export class CreateNotificationDto {
   @IsString()
   body!: string;
 }
-

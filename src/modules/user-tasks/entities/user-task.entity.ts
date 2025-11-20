@@ -10,12 +10,9 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Campaign } from '../../campaigns/entities/campaign.entity';
-import { Task } from '../../tasks/entities/task.entity';
+import { Task } from '../../social-tasks/entities/task.entity';
 import { UserTaskStatus } from '../../../common/enums/user-task-status.enum';
-import {
-  TIMESTAMP_COLUMN_TYPE,
-  enumColumn,
-} from '../../../common/utils/column-type.util';
+import { TIMESTAMP_COLUMN_TYPE, enumColumn } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'user_tasks' })
 @Unique('uq_user_task_user_task', ['userId', 'taskId'])
@@ -70,4 +67,3 @@ export class UserTask {
   @CreateDateColumn({ name: 'created_at', type: TIMESTAMP_COLUMN_TYPE })
   createdAt!: Date;
 }
-

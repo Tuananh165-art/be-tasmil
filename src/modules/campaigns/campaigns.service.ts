@@ -5,7 +5,7 @@ import { Cache } from 'cache-manager';
 import { DataSource, Repository } from 'typeorm';
 import { Campaign } from './entities/campaign.entity';
 import { CampaignParticipation } from './entities/campaign-participation.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { CampaignQueryDto } from './dto/campaign-query.dto';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { ClaimsService } from '../claims/claims.service';
@@ -15,6 +15,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CampaignClaim } from '../claims/entities/campaign-claim.entity';
 import { UserTask } from '../user-tasks/entities/user-task.entity';
+import { UserTaskStatus } from '../../common/enums/user-task-status.enum';
 
 @Injectable()
 export class CampaignsService {
@@ -59,14 +60,15 @@ export class CampaignsService {
       }
     }
     if (query.search) {
-      qb.andWhere(
-        '(campaign.title ILIKE :search OR campaign.description ILIKE :search)',
-        { search: `%${query.search}%` },
-      );
+      qb.andWhere('(campaign.title ILIKE :search OR campaign.description ILIKE :search)', {
+        search: `%${query.search}%`,
+      });
     }
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    qb.skip((page - 1) * limit).take(limit).orderBy('campaign.createdAt', 'DESC');
+    qb.skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('campaign.createdAt', 'DESC');
     const [items, total] = await qb.getManyAndCount();
     const response = {
       items,
@@ -141,9 +143,7 @@ export class CampaignsService {
           status: 409,
         });
       }
-      await participationRepo.save(
-        participationRepo.create({ userId, campaignId }),
-      );
+      await participationRepo.save(participationRepo.create({ userId, campaignId }));
       campaign.questersCount += 1;
       await manager.getRepository(Campaign).save(campaign);
     });
@@ -151,7 +151,7 @@ export class CampaignsService {
     return { message: 'Joined campaign' };
   }
 
-  async getTasks(campaignId: string) {
+  async getTasks(campaignId: string, userId?: string | null) {
     const campaign = await this.campaignRepository.findOne({
       where: { id: campaignId },
       relations: ['tasks'],
@@ -163,7 +163,19 @@ export class CampaignsService {
         status: 404,
       });
     }
-    return (campaign.tasks ?? []).sort((a, b) => a.taskOrder - b.taskOrder);
+    const tasks = (campaign.tasks ?? []).sort((a, b) => a.taskOrder - b.taskOrder);
+    if (!userId) {
+      return tasks;
+    }
+    const userTasks = await this.userTaskRepository.find({
+      where: { userId, campaignId },
+    });
+    const statusMap = new Map(userTasks.map((ut) => [ut.taskId, ut]));
+    return tasks.map((task) => ({
+      ...task,
+      userStatus: this.mapUserTaskStatus(statusMap.get(task.id)),
+      completedAt: statusMap.get(task.id)?.completedAt ?? null,
+    }));
   }
 
   async claimCampaign(userId: string, campaignId: string) {
@@ -210,8 +222,7 @@ export class CampaignsService {
     }
     Object.assign(campaign, {
       ...dto,
-      category:
-        dto.category !== undefined ? dto.category : campaign.category,
+      category: dto.category !== undefined ? dto.category : campaign.category,
       startAt: dto.startAt ? new Date(dto.startAt) : campaign.startAt,
       endAt: dto.endAt ? new Date(dto.endAt) : campaign.endAt,
     });
@@ -229,7 +240,7 @@ export class CampaignsService {
   async addTask(campaignId: string, dto: CreateTaskDto) {
     const task = this.taskRepository.create({
       ...dto,
-      taskType: dto.taskType ?? null,
+      config: dto.config ?? {},
       campaignId,
     });
     const saved = await this.taskRepository.save(task);
@@ -248,8 +259,7 @@ export class CampaignsService {
     }
     Object.assign(task, {
       ...dto,
-      taskType:
-        dto.taskType !== undefined ? dto.taskType : task.taskType,
+      config: dto.config !== undefined ? dto.config : task.config,
     });
     const saved = await this.taskRepository.save(task);
     await this.invalidateCache();
@@ -268,10 +278,7 @@ export class CampaignsService {
 
   private ensureActive(campaign: Campaign) {
     const now = new Date();
-    if (
-      (campaign.startAt && campaign.startAt > now) ||
-      (campaign.endAt && campaign.endAt < now)
-    ) {
+    if ((campaign.startAt && campaign.startAt > now) || (campaign.endAt && campaign.endAt < now)) {
       throw new BusinessException({
         code: 'CAMPAIGN_NOT_ACTIVE',
         message: 'Campaign is not active',
@@ -279,5 +286,20 @@ export class CampaignsService {
       });
     }
   }
-}
 
+  private mapUserTaskStatus(userTask?: UserTask | null) {
+    if (!userTask) {
+      return UserTaskStatus.Pending;
+    }
+    if (
+      userTask.status === UserTaskStatus.Approved ||
+      userTask.status === UserTaskStatus.Completed
+    ) {
+      return 'completed';
+    }
+    if (userTask.status === UserTaskStatus.Rejected) {
+      return 'rejected';
+    }
+    return userTask.status;
+  }
+}

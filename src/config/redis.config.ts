@@ -7,4 +7,3 @@ export default registerAs('redis', () => ({
   db: parseInt(process.env.REDIS_DB ?? '0', 10),
   ttl: parseInt(process.env.REDIS_DEFAULT_TTL ?? '3600', 10),
 }));
-

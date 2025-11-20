@@ -9,4 +9,3 @@ export const isYesterdayUTC = (date: Date | null | undefined): boolean => {
   const compare = dayjs(date).utc().startOf('day');
   return compare.add(1, 'day').isSame(now);
 };
-

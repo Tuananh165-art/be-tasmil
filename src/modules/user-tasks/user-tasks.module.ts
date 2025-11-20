@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserTask } from './entities/user-task.entity';
 import { UserTasksService } from './user-tasks.service';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -11,4 +11,3 @@ import { UsersModule } from '../users/users.module';
   exports: [UserTasksService, TypeOrmModule],
 })
 export class UserTasksModule {}
-

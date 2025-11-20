@@ -17,4 +17,3 @@ export class UsernameLoginDto {
   @IsString()
   signature!: string;
 }
-

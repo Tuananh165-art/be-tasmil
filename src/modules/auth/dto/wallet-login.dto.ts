@@ -1,11 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
-import {
-  IsEthereumAddress,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsEthereumAddress, IsOptional, IsString, Length } from 'class-validator';
 
 export class WalletLoginDto {
   @ApiProperty()
@@ -19,7 +14,7 @@ export class WalletLoginDto {
   @IsString()
   signature!: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Referral code of inviter',
   })
   @IsOptional()
@@ -33,4 +28,3 @@ export class WalletLoginDto {
   })
   referralCode?: string;
 }
-

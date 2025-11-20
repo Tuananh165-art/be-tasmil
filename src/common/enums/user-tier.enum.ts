@@ -5,4 +5,3 @@ export enum UserTier {
   Platinum = 'Platinum',
   Diamond = 'Diamond',
 }
-

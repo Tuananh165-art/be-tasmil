@@ -2,7 +2,9 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { databaseConfig } from '../config';
-import migration from './migrations/1710620000000-init-schema';
+import initSchema from './migrations/1710620000000-init-schema';
+import socialTasks from './migrations/1710860000000-social-tasks';
+import addUserEmail from './migrations/1710900000000-add-user-email';
 
 dotenv.config();
 
@@ -18,7 +20,7 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   logging: dbConfig.logging,
   entities: ['src/**/*.entity.ts'],
-  migrations: [migration],
+  migrations: [initSchema, socialTasks, addUserEmail],
 });
 
 // Run migrations if called from command line

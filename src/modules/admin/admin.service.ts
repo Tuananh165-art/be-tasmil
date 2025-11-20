@@ -45,4 +45,3 @@ export class AdminService {
     return this.userTasksService.reject(userTaskId);
   }
 }
-

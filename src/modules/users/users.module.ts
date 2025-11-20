@@ -8,12 +8,9 @@ import { CampaignClaim } from '../claims/entities/campaign-claim.entity';
 import { ReferralEvent } from '../claims/entities/referral-event.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, TaskClaim, CampaignClaim, ReferralEvent]),
-  ],
+  imports: [TypeOrmModule.forFeature([User, TaskClaim, CampaignClaim, ReferralEvent])],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule {}
-

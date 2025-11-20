@@ -35,4 +35,3 @@ export class ReferralEvent {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 }
-

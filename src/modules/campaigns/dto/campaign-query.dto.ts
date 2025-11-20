@@ -15,4 +15,3 @@ export class CampaignQueryDto extends PaginationQueryDto {
   @IsBoolean()
   active?: boolean;
 }
-

@@ -110,6 +110,22 @@ export class UsersService {
     if (dto.avatarUrl) {
       user.avatarUrl = dto.avatarUrl;
     }
+    if (dto.email !== undefined && dto.email !== user.email) {
+      const normalizedEmail = dto.email ? dto.email.trim().toLowerCase() : null;
+      if (normalizedEmail) {
+        const existingEmail = await this.usersRepository.findOne({
+          where: { email: normalizedEmail },
+        });
+        if (existingEmail && existingEmail.id !== user.id) {
+          throw new BusinessException({
+            code: 'EMAIL_TAKEN',
+            message: 'Email already in use',
+            status: 409,
+          });
+        }
+      }
+      user.email = normalizedEmail;
+    }
     return this.usersRepository.save(user);
   }
 
@@ -124,7 +140,8 @@ export class UsersService {
         status: 404,
       });
     }
-    return user;
+    const { email: _email, ...publicUser } = user;
+    return publicUser;
   }
 
   async getPointsHistory(
@@ -199,22 +216,14 @@ export class UsersService {
     return { pointsAwarded: reward };
   }
 
-  async applyPointChange(
-    userId: string,
-    delta: number,
-    manager?: EntityManager,
-  ) {
-    const repo = manager
-      ? manager.getRepository(User)
-      : this.usersRepository;
+  async applyPointChange(userId: string, delta: number, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(User) : this.usersRepository;
     await repo.increment({ id: userId }, 'totalPoints', delta);
     await this.syncTier(userId, manager);
   }
 
   async syncTier(userId: string, manager?: EntityManager) {
-    const repo = manager
-      ? manager.getRepository(User)
-      : this.usersRepository;
+    const repo = manager ? manager.getRepository(User) : this.usersRepository;
     const user = await repo.findOne({ where: { id: userId } });
     if (!user) {
       return;
@@ -239,10 +248,7 @@ export class UsersService {
     if (existing) {
       return;
     }
-    const points = this.configService.get<number>(
-      'auth.referralRewardPoints',
-      100,
-    );
+    const points = this.configService.get<number>('auth.referralRewardPoints', 100);
     await this.dataSource.transaction(async (manager) => {
       const eventRepo = manager.getRepository(ReferralEvent);
       const hasEvent = await eventRepo.findOne({
@@ -280,12 +286,9 @@ export class UsersService {
 
   private async generateReferralCode() {
     let code = uuid().split('-')[0];
-    while (
-      await this.usersRepository.exist({ where: { referralCode: code } })
-    ) {
+    while (await this.usersRepository.exist({ where: { referralCode: code } })) {
       code = uuid().split('-')[0];
     }
     return code;
   }
 }
-

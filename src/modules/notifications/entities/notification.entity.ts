@@ -7,10 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import {
-  TIMESTAMP_COLUMN_TYPE,
-  JSON_COLUMN_TYPE,
-} from '../../../common/utils/column-type.util';
+import { TIMESTAMP_COLUMN_TYPE, JSON_COLUMN_TYPE } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'notifications' })
 export class Notification {
@@ -39,4 +36,3 @@ export class Notification {
   @CreateDateColumn({ name: 'created_at', type: TIMESTAMP_COLUMN_TYPE })
   createdAt!: Date;
 }
-

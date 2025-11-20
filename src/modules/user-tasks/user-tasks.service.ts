@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserTask } from './entities/user-task.entity';
-import { Task } from '../tasks/entities/task.entity';
+import { Task } from '../social-tasks/entities/task.entity';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { UserTaskStatus } from '../../common/enums/user-task-status.enum';
 import { UsersService } from '../users/users.service';
@@ -17,11 +17,7 @@ export class UserTasksService {
     private readonly usersService: UsersService,
   ) {}
 
-  async submitProof(
-    userId: string,
-    taskId: string,
-    proofData: string,
-  ): Promise<UserTask> {
+  async submitProof(userId: string, taskId: string, proofData: string): Promise<UserTask> {
     const task = await this.taskRepository.findOne({
       where: { id: taskId },
     });
@@ -77,12 +73,12 @@ export class UserTasksService {
       });
     }
     const rewardPoints =
-      userTask.task?.rewardPoints ??
+      userTask.task?.rewardPointTask ??
       (
         await this.taskRepository.findOne({
           where: { id: userTask.taskId },
         })
-      )?.rewardPoints ??
+      )?.rewardPointTask ??
       userTask.pointsEarned;
     userTask.status = UserTaskStatus.Approved;
     userTask.completedAt = new Date();
@@ -107,4 +103,3 @@ export class UserTasksService {
     return this.userTaskRepository.save(userTask);
   }
 }
-

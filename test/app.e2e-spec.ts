@@ -35,7 +35,6 @@ describe('Quest flows (e2e)', () => {
       dataSource = app.get(DataSource);
       await seedData();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('E2E setup failure:', error);
       throw error;
     }
@@ -84,9 +83,7 @@ describe('Quest flows (e2e)', () => {
       .expect(200);
 
     const nonce = nonceResponse.body.data.nonce;
-    const signature = await wallet.signMessage(
-      `Tasmil Login Nonce: ${nonce}`,
-    );
+    const signature = await wallet.signMessage(`Tasmil Login Nonce: ${nonce}`);
 
     const loginResponse = await request(httpServer)
       .post('/auth/wallet/login')
@@ -138,7 +135,6 @@ describe('Quest flows (e2e)', () => {
         .set('Authorization', `Bearer ${userTokens.accessToken}`)
         .expect(201);
     } catch (error: any) {
-      // eslint-disable-next-line no-console
       console.error('E2E failure payload:', error?.response?.body ?? error);
       throw error;
     }

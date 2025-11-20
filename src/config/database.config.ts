@@ -11,4 +11,3 @@ export default registerAs('database', () => ({
   name: process.env.DB_NAME ?? 'tasmil',
   logging: process.env.DB_LOGGING === 'true',
 }));
-

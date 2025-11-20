@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Telegram OAuth Test</title>
+  </head>
+  <body>
+    <h1>Telegram OAuth Manual Test</h1>
+    <p>
+      Use Telegram login widget or bot to obtain the
+      <code>access_token</code> / <code>user_id</code>. Paste the values below to
+      push them to <code>/api/social-auth/telegram/token</code>.
+    </p>
+    <label>
+      Backend Base URL
+      <input id="baseUrl" value="http://localhost:3000/api" size="40" />
+    </label>
+    <br />
+    <label>
+      Access Token
+      <input id="accessToken" size="60" />
+    </label>
+    <br />
+    <label>
+      User (Telegram) ID
+      <input id="externalUserId" />
+    </label>
+    <br />
+    <label>
+      Expires In (seconds)
+      <input id="expiresIn" type="number" />
+    </label>
+    <br />
+    <button id="sendBtn">Send to Backend</button>
+    <pre id="response"></pre>
+
+    <script>
+      document.getElementById('sendBtn').addEventListener('click', async () => {
+        const payload = {
+          accessToken: document.getElementById('accessToken').value,
+          externalUserId: document.getElementById('externalUserId').value,
+          expiresIn: parseInt(
+            document.getElementById('expiresIn').value || '0',
+            10,
+          ),
+        };
+        const res = await fetch(
+          `${document.getElementById('baseUrl').value}/social-auth/telegram/token`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('jwt') || ''}`,
+            },
+            body: JSON.stringify(payload),
+          },
+        );
+        document.getElementById('response').textContent = await res.text();
+      });
+    </script>
+  </body>
+</html>
+
+

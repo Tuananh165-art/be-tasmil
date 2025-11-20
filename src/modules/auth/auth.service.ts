@@ -36,11 +36,7 @@ export class AuthService {
     await this.rateLimiterService.consume(`nonce:${normalized}`, 1);
 
     const nonce = randomBytes(16).toString('hex');
-    await this.redisService.setValue(
-      this.getNonceKey(normalized),
-      nonce,
-      this.nonceTtl,
-    );
+    await this.redisService.setValue(this.getNonceKey(normalized), nonce, this.nonceTtl);
 
     const result: any = {
       walletAddress: normalized,
@@ -60,9 +56,7 @@ export class AuthService {
     try {
       await this.rateLimiterService.consume(`wallet-login:${ip ?? 'unknown'}`, 2);
       const normalizedWallet = this.normalizeWalletAddress(dto.walletAddress);
-      const nonce = await this.redisService.getValue(
-        this.getNonceKey(normalizedWallet),
-      );
+      const nonce = await this.redisService.getValue(this.getNonceKey(normalizedWallet));
       if (!nonce) {
         throw new BusinessException({
           code: 'NONCE_EXPIRED',
@@ -73,17 +67,13 @@ export class AuthService {
       this.verifySignature(normalizedWallet, dto.signature, nonce);
       await this.redisService.delete(this.getNonceKey(normalizedWallet));
 
-      const user = await this.usersService.ensureWalletUser(
-        normalizedWallet,
-        dto.referralCode,
-      );
+      const user = await this.usersService.ensureWalletUser(normalizedWallet, dto.referralCode);
       await this.usersService.handleLoginSuccess(user.id);
       const tokens = await this.issueTokens(user);
       return {
         ...tokens,
         user: await this.usersService.getMe(user.id),
       };
-
     } catch (error) {
       if (error instanceof BusinessException) {
         throw error;
@@ -101,9 +91,7 @@ export class AuthService {
   async usernameLogin(dto: UsernameLoginDto, ip?: string) {
     await this.rateLimiterService.consume(`username-login:${ip ?? 'unknown'}`);
     const normalizedWallet = this.normalizeWalletAddress(dto.walletAddress);
-    const nonce = await this.redisService.getValue(
-      this.getNonceKey(normalizedWallet),
-    );
+    const nonce = await this.redisService.getValue(this.getNonceKey(normalizedWallet));
     if (!nonce) {
       throw new BusinessException({
         code: 'NONCE_EXPIRED',
@@ -132,18 +120,13 @@ export class AuthService {
 
   async refreshTokens(dto: RefreshTokenDto) {
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
-        {
-          secret: this.configService.get<string>('auth.jwtRefreshSecret'),
-        },
-      );
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(dto.refreshToken, {
+        secret: this.configService.get<string>('auth.jwtRefreshSecret'),
+      });
       if (!payload.tokenId) {
         throw new Error('Missing token id');
       }
-      const stored = await this.redisService.getValue(
-        this.getRefreshKey(payload.tokenId),
-      );
+      const stored = await this.redisService.getValue(this.getRefreshKey(payload.tokenId));
       if (!stored) {
         throw new Error('Refresh token revoked');
       }
@@ -168,26 +151,19 @@ export class AuthService {
 
   async logout(dto: RefreshTokenDto) {
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
-        {
-          secret: this.configService.get<string>('auth.jwtRefreshSecret'),
-        },
-      );
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(dto.refreshToken, {
+        secret: this.configService.get<string>('auth.jwtRefreshSecret'),
+      });
       if (payload.tokenId) {
         await this.redisService.delete(this.getRefreshKey(payload.tokenId));
       }
     } catch {
-
+      // Ignore invalid refresh token errors during logout
     }
     return { message: 'Logged out' };
   }
 
-  private verifySignature(
-    walletAddress: string,
-    signature: string,
-    nonce: string,
-  ) {
+  private verifySignature(walletAddress: string, signature: string, nonce: string) {
     try {
       const message = `Tasmil Login Nonce: ${nonce}`;
       const recovered = verifyMessage(message, signature).toLowerCase();
@@ -199,7 +175,6 @@ export class AuthService {
         });
       }
     } catch (error) {
-
       if (error instanceof BusinessException) {
         throw error;
       }
@@ -265,4 +240,3 @@ export class AuthService {
     return address.toLowerCase();
   }
 }
-

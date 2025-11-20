@@ -15,10 +15,7 @@ import { UserTask } from '../../user-tasks/entities/user-task.entity';
 import { TaskClaim } from '../../claims/entities/task-claim.entity';
 import { CampaignClaim } from '../../claims/entities/campaign-claim.entity';
 import { ReferralEvent } from '../../claims/entities/referral-event.entity';
-import {
-  TIMESTAMP_COLUMN_TYPE,
-  enumColumn,
-} from '../../../common/utils/column-type.util';
+import { TIMESTAMP_COLUMN_TYPE, enumColumn } from '../../../common/utils/column-type.util';
 
 @Entity({ name: 'users' })
 @Index('idx_users_wallet_address', ['walletAddress'])
@@ -32,6 +29,14 @@ export class User {
 
   @Column({ type: 'varchar', length: 42, unique: true, name: 'wallet_address' })
   walletAddress!: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    unique: true,
+    nullable: true,
+  })
+  email?: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'avatar_url' })
   avatarUrl?: string | null;
@@ -83,10 +88,7 @@ export class User {
   @CreateDateColumn({ name: 'created_at', type: TIMESTAMP_COLUMN_TYPE })
   createdAt!: Date;
 
-  @OneToMany(
-    () => CampaignParticipation,
-    (participation) => participation.user,
-  )
+  @OneToMany(() => CampaignParticipation, (participation) => participation.user)
   participations?: CampaignParticipation[];
 
   @OneToMany(() => UserTask, (userTask) => userTask.user)
@@ -101,4 +103,3 @@ export class User {
   @OneToMany(() => ReferralEvent, (event) => event.user)
   referralEvents?: ReferralEvent[];
 }
-

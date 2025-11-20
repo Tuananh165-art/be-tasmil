@@ -38,4 +38,3 @@ export class CampaignParticipation {
   @CreateDateColumn({ name: 'joined_at', type: TIMESTAMP_COLUMN_TYPE })
   joinedAt!: Date;
 }
-

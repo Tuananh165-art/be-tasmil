@@ -3,19 +3,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { redisStore } from 'cache-manager-ioredis-yet';
-import {
-  appConfig,
-  authConfig,
-  databaseConfig,
-  redisConfig,
-} from './config';
+import { appConfig, authConfig, databaseConfig, redisConfig, socialConfig } from './config';
 import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './infra/redis/redis.module';
 import { MockRedisModule } from './infra/redis/mock-redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
-import { TasksModule } from './modules/tasks/tasks.module';
+import { SocialTasksModule } from './modules/social-tasks/tasks.module';
 import { UserTasksModule } from './modules/user-tasks/user-tasks.module';
 import { ClaimsModule } from './modules/claims/claims.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -27,14 +22,13 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
-const redisFeatureModule =
-  process.env.MOCK_REDIS === 'true' ? MockRedisModule : RedisModule;
+const redisFeatureModule = process.env.MOCK_REDIS === 'true' ? MockRedisModule : RedisModule;
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, redisConfig, authConfig],
+      load: [appConfig, databaseConfig, redisConfig, authConfig, socialConfig],
     }),
     CacheModule.registerAsync({
       isGlobal: true,
@@ -63,7 +57,7 @@ const redisFeatureModule =
     AuthModule,
     UsersModule,
     CampaignsModule,
-    TasksModule,
+    SocialTasksModule,
     UserTasksModule,
     ClaimsModule,
     AdminModule,
@@ -91,4 +85,3 @@ const redisFeatureModule =
   ],
 })
 export class AppModule {}
-  

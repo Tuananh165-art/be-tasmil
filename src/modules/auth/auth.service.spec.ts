@@ -76,4 +76,3 @@ describe('AuthService', () => {
     expect(usersService.handleLoginSuccess).toHaveBeenCalledWith('user-1');
   });
 });
-

@@ -25,32 +25,24 @@ export class CampaignsController {
   @Public()
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user?: JwtPayload | null,
-  ) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: JwtPayload | null) {
     return this.campaignsService.findOne(id, user?.sub);
   }
 
   @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id/tasks')
-  async getTasks(@Param('id', ParseUUIDPipe) id: string) {
-    return this.campaignsService.getTasks(id);
+  async getTasks(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: JwtPayload | null) {
+    return this.campaignsService.getTasks(id, user?.sub);
   }
 
   @Post(':id/join')
-  async joinCampaign(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  async joinCampaign(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.campaignsService.joinCampaign(id, user.sub);
   }
 
   @Post(':id/claim')
-  async claimCampaign(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  async claimCampaign(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
     return this.campaignsService.claimCampaign(user.sub, id);
   }
 
@@ -60,4 +52,3 @@ export class CampaignsController {
     return this.campaignsService.getClaims(id);
   }
 }
-

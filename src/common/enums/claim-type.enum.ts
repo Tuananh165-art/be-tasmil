@@ -3,4 +3,3 @@ export enum ClaimType {
   Campaign = 'campaign',
   Referral = 'referral',
 }
-

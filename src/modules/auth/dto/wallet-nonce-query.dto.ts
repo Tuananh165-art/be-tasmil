@@ -9,5 +9,3 @@ export class WalletNonceQueryDto {
   @IsEthereumAddress()
   walletAddress!: string;
 }
-
-

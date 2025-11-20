@@ -28,15 +28,11 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup(
-    `${configService.get<string>('app.apiPrefix', 'api')}/docs`,
-    app,
-    document,
-  );
+  SwaggerModule.setup(`${configService.get<string>('app.apiPrefix', 'api')}/docs`, app, document);
 
   const port = configService.get<number>('app.port', 3000);
   await app.listen(port);
-  // eslint-disable-next-line no-console
+
   console.log(`Server ready at http://localhost:${port}`);
 }
 bootstrap();

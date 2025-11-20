@@ -12,4 +12,3 @@ export const enumColumn = <T extends Record<string, unknown> | (string | number)
   type: 'enum',
   enum: enumType,
 });
-

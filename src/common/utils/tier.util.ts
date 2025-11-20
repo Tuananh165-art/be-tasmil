@@ -7,4 +7,3 @@ export const resolveTierByPoints = (points: number): UserTier => {
   if (points >= 500) return UserTier.Silver;
   return UserTier.Bronze;
 };
-
