@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { verifyMessage, isAddress } from 'ethers';
 import { randomBytes, randomUUID } from 'crypto';
+import { Response, Request } from 'express';
 import { WalletLoginDto } from './dto/wallet-login.dto';
 import { UsersService } from '../users/users.service';
 import { WalletNonceQueryDto } from './dto/wallet-nonce-query.dto';
@@ -17,6 +18,11 @@ import { UserRole } from '../../common/enums/user-role.enum';
 interface TokenResponse {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  user: any;
 }
 
 @Injectable()
@@ -56,7 +62,7 @@ export class AuthService {
     return nodeEnv !== 'production';
   }
 
-  async walletLogin(dto: WalletLoginDto, ip?: string) {
+  async walletLogin(dto: WalletLoginDto, res: Response, ip?: string): Promise<LoginResponse> {
     try {
       await this.rateLimiterService.consume(`wallet-login:${ip ?? 'unknown'}`, 2);
       const normalizedWallet = this.normalizeWalletAddress(dto.walletAddress);
@@ -79,8 +85,11 @@ export class AuthService {
       );
       await this.usersService.handleLoginSuccess(user.id);
       const tokens = await this.issueTokens(user);
+      
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+      
       return {
-        ...tokens,
+        accessToken: tokens.accessToken,
         user: await this.usersService.getMe(user.id),
       };
 
@@ -98,7 +107,7 @@ export class AuthService {
     }
   }
 
-  async usernameLogin(dto: UsernameLoginDto, ip?: string) {
+  async usernameLogin(dto: UsernameLoginDto, res: Response, ip?: string): Promise<LoginResponse> {
     await this.rateLimiterService.consume(`username-login:${ip ?? 'unknown'}`);
     const normalizedWallet = this.normalizeWalletAddress(dto.walletAddress);
     const nonce = await this.redisService.getValue(
@@ -124,16 +133,24 @@ export class AuthService {
     }
     await this.usersService.handleLoginSuccess(user.id);
     const tokens = await this.issueTokens(user);
+    
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    
     return {
-      ...tokens,
+      accessToken: tokens.accessToken,
       user: await this.usersService.getMe(user.id),
     };
   }
 
-  async refreshTokens(dto: RefreshTokenDto) {
+  async refreshTokens(req: Request, res: Response): Promise<LoginResponse> {
     try {
+      const refreshToken = req.cookies?.refreshToken;
+      if (!refreshToken) {
+        throw new Error('Refresh token not found');
+      }
+      
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
+        refreshToken,
         {
           secret: this.configService.get<string>('auth.jwtRefreshSecret'),
         },
@@ -153,8 +170,11 @@ export class AuthService {
         throw new Error('User not found');
       }
       const tokens = await this.issueTokens(user);
+      
+      this.setRefreshTokenCookie(res, tokens.refreshToken);
+      
       return {
-        ...tokens,
+        accessToken: tokens.accessToken,
         user: await this.usersService.getMe(user.id),
       };
     } catch (error) {
@@ -166,20 +186,26 @@ export class AuthService {
     }
   }
 
-  async logout(dto: RefreshTokenDto) {
+  async logout(req: Request, res: Response) {
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
-        {
-          secret: this.configService.get<string>('auth.jwtRefreshSecret'),
-        },
-      );
-      if (payload.tokenId) {
-        await this.redisService.delete(this.getRefreshKey(payload.tokenId));
+      const refreshToken = req.cookies?.refreshToken;
+      if (refreshToken) {
+        const payload = await this.jwtService.verifyAsync<JwtPayload>(
+          refreshToken,
+          {
+            secret: this.configService.get<string>('auth.jwtRefreshSecret'),
+          },
+        );
+        if (payload.tokenId) {
+          await this.redisService.delete(this.getRefreshKey(payload.tokenId));
+        }
       }
     } catch {
 
     }
+    
+    this.clearRefreshTokenCookie(res);
+    
     return { message: 'Logged out' };
   }
 
@@ -263,6 +289,24 @@ export class AuthService {
       });
     }
     return address.toLowerCase();
+  }
+
+  private setRefreshTokenCookie(res: Response, refreshToken: string) {
+    const refreshTtl = this.configService.get<number>('auth.jwtRefreshTtl', 604800);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+      maxAge: refreshTtl * 1000,
+    });
+  }
+
+  private clearRefreshTokenCookie(res: Response) {
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+    });
   }
 }
 

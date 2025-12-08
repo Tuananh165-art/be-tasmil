@@ -5,9 +5,12 @@ import {
   Ip,
   Post,
   Query,
+  Res,
+  Req,
 } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
+import { AuthService, LoginResponse } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { WalletLoginDto } from './dto/wallet-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -27,26 +30,40 @@ export class AuthController {
 
   @Public()
   @Post('wallet/login')
-  async walletLogin(@Body() dto: WalletLoginDto, @Ip() ip?: string) {
-    return this.authService.walletLogin(dto, ip);
+  async walletLogin(
+    @Body() dto: WalletLoginDto,
+    @Res({ passthrough: true }) res: Response,
+    @Ip() ip?: string,
+  ): Promise<LoginResponse> {
+    return this.authService.walletLogin(dto, res, ip);
   }
 
   @Public()
   @Post('login')
-  async usernameLogin(@Body() dto: UsernameLoginDto, @Ip() ip?: string) {
-    return this.authService.usernameLogin(dto, ip);
+  async usernameLogin(
+    @Body() dto: UsernameLoginDto,
+    @Res({ passthrough: true }) res: Response,
+    @Ip() ip?: string,
+  ): Promise<LoginResponse> {
+    return this.authService.usernameLogin(dto, res, ip);
   }
 
   @Public()
   @Post('refresh')
-  async refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshTokens(dto);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponse> {
+    return this.authService.refreshTokens(req, res);
   }
 
   @Public()
   @Post('logout')
-  async logout(@Body() dto: RefreshTokenDto) {
-    return this.authService.logout(dto);
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.logout(req, res);
   }
 }
 

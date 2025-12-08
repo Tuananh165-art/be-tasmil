@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
@@ -10,7 +11,11 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.use(helmet());
-  app.enableCors();
+  app.use(cookieParser());
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   app.setGlobalPrefix(configService.get<string>('app.apiPrefix', 'api'));
   app.useGlobalPipes(
     new ValidationPipe({
